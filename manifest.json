@@ -12,6 +12,14 @@
 			"css": ["src/css/styles.css"]
 		}
 	],
+	"action": {
+		"default_popup": "popup.html",
+		"default_icon": {
+			"16": "src/images/icon.png",
+			"48": "src/images/icon.png",
+			"128": "src/images/icon.png"
+		}
+	},
 
 	"web_accessible_resources": [
 		{

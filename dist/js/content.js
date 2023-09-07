@@ -36,12 +36,12 @@ function createOdometerMilesPerHourSpan(odometer) {
     const span = document.createElement("span");
     span.textContent = odometer.toString();
     span.id = Math.floor(Math.random() * 500).toString();
-    span.style.color = "green";
+    span.style.color = "purple";
     return span;
 }
 const fetchAndProcessStatus = () => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("processing status");
-    database = { status: [] };
+    console.log("3. processing status");
+    database.status = []; // TODO: same cache data instead of clearing the database
     const allStatusDatabase = database.status;
     try {
         const htmlAllStatus = $$(ALL_STATUS);
@@ -51,7 +51,7 @@ const fetchAndProcessStatus = () => __awaiter(void 0, void 0, void 0, function* 
             const id = htmlStatus.id;
             const currentStatus = document.getElementById(id);
             if (!currentStatus)
-                return;
+                continue;
             const { parsed } = getStatusDateHtml(currentStatus);
             const { number } = getOdometerHtml(currentStatus);
             const odometerParsed = parseOdometer(number);
@@ -63,7 +63,7 @@ const fetchAndProcessStatus = () => __awaiter(void 0, void 0, void 0, function* 
             const statusElement = allStatusDatabase[i];
             const currentStatus = document.getElementById(statusElement.id);
             if (!currentStatus)
-                return;
+                continue;
             const odometer = getOdometerHtml(currentStatus);
             if (odometer) {
                 const htmlOdometerCell = odometer.html;
@@ -72,7 +72,7 @@ const fetchAndProcessStatus = () => __awaiter(void 0, void 0, void 0, function* 
                     const beforeElement = allStatusDatabase[i - 1];
                     const milesPerHour = statusElement.odometer - beforeElement.odometer;
                     if (isNaN(milesPerHour))
-                        return;
+                        continue;
                     // modify html
                     const spanMilesPerHour = createOdometerMilesPerHourSpan(milesPerHour);
                     htmlOdometerCell.appendChild(spanMilesPerHour);
@@ -87,13 +87,16 @@ const fetchAndProcessStatus = () => __awaiter(void 0, void 0, void 0, function* 
 });
 const runApp = () => {
     fetchAndProcessStatus();
+    console.log("4. status proceed");
+    setTimeout(() => console.clear(), 3000);
+    console.log("console cleared");
 };
 const startObserver = () => {
-    console.log("observing");
+    console.log("2. observing");
     const bodyObserver = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
             if (mutation.type === "childList" && mutation.target === document.body) {
-                console.log("body changed");
+                console.log("✨body changed");
                 // When the body changes, run the function
                 runApp();
             }
@@ -107,6 +110,7 @@ const startObserver = () => {
     bodyObserver.observe(document.body, bodyObserverConfig);
 };
 window.onload = () => {
+    console.log("1. extension is running");
+    fetchAndProcessStatus();
     startObserver();
-    console.log("extension is running");
 };
