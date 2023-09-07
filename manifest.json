@@ -1,0 +1,27 @@
+{
+	"manifest_version": 3,
+	"name": "ELD Magic Tool Extension",
+	"version": "1.0",
+	"permissions": ["activeTab", "storage"],
+	"description": "Extension to upgrade the performance and speed of ELD team. Made by Jose Latines",
+	"content_scripts": [
+		{
+			"matches": ["https://dragoneld.ilogeld.com/r/p/drivers/log*"],
+			"js": ["dist/js/content.js"],
+			"type": "module",
+			"css": ["src/css/styles.css"]
+		}
+	],
+
+	"web_accessible_resources": [
+		{
+			"resources": ["src/*"],
+			"matches": ["<all_urls>"]
+		}
+	],
+	"icons": {
+		"16": "src/images/icon.png",
+		"48": "src/images/icon.png",
+		"128": "src/images/icon.png"
+	}
+}
