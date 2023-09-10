@@ -17,15 +17,28 @@ const HTML_ELEMENTS = {
 	ODOMETER_CELL:
 		"mat-cell cdk-cell log-table-cell cdk-column-odometer mat-column-odometer",
 	DATE_CELL: "mat-cell cdk-cell log-table-cell cdk-column-time mat-column-time",
+	RELOAD_BTN: "#reloadBTnMilesHour",
 };
 
-const { ALL_STATUS, ODOMETER_CELL, DATE_CELL } = HTML_ELEMENTS;
+const { ALL_STATUS, ODOMETER_CELL, DATE_CELL, RELOAD_BTN } = HTML_ELEMENTS;
 
 const $ = (query: string) => document.querySelector(query);
 const $$ = (query: string) => document.querySelectorAll(query);
 
 const parseOdometer = (odometerText: string): number =>
 	Number(odometerText.replace(" ", ""));
+
+const addReloadHtmlBtn = (containerHtmlQuery = ".d-flex.w-90") => {
+	console.log("adding reload btn");
+	const htmlReloadBtn = document.createElement("button");
+	htmlReloadBtn.id = RELOAD_BTN.replace("#", "");
+	htmlReloadBtn.textContent = "Reload miles per hour";
+	htmlReloadBtn.addEventListener("click", fetchAndProcessStatus);
+	const container = $(containerHtmlQuery);
+
+	if (!container) return console.log("container doest exits");
+	container.appendChild(htmlReloadBtn);
+};
 
 const getOdometerHtml = (status: HTMLElement) => {
 	const htmlStatusOdometer = status.getElementsByClassName(ODOMETER_CELL)[0];
@@ -117,9 +130,12 @@ const startObserver = () => {
 	console.log("2. observing");
 	const bodyObserver = new MutationObserver(mutations => {
 		mutations.forEach(mutation => {
+			// every time the log is changed (next day)
 			if (mutation.type === "childList" && mutation.target === document.body) {
 				console.log("✨body changed");
-				// When the body changes, run the function
+				// if reload btn doesn't exits -> add it
+				if (!$(RELOAD_BTN)) addReloadHtmlBtn();
+
 				runApp();
 			}
 		});
@@ -136,6 +152,8 @@ const startObserver = () => {
 
 window.onload = () => {
 	console.log("1. extension is running");
-	fetchAndProcessStatus();
+	// first page load
 	startObserver();
+	addReloadHtmlBtn();
+	fetchAndProcessStatus();
 };
