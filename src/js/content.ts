@@ -8,8 +8,6 @@ interface Database {
 	status: Status[];
 }
 
-let database: Database = { status: [] };
-
 const HTML_ELEMENTS = {
 	CONTAINER: ".mat-table.cdk-table.table-stripes",
 	TABLE: "tbody",
@@ -20,6 +18,8 @@ const HTML_ELEMENTS = {
 	RELOAD_BTN: "#reloadBTnMilesHour",
 };
 
+const database: Database = { status: [] };
+
 const { ALL_STATUS, ODOMETER_CELL, DATE_CELL, RELOAD_BTN } = HTML_ELEMENTS;
 
 const $ = (query: string) => document.querySelector(query);
@@ -27,6 +27,26 @@ const $$ = (query: string) => document.querySelectorAll(query);
 
 const parseOdometer = (odometerText: string): number =>
 	Number(odometerText.replace(" ", ""));
+
+const createOdometerMilesPerHourSpan = (odometer: number): HTMLSpanElement => {
+	const span = document.createElement("span");
+	span.textContent = odometer.toString();
+	span.id = Math.floor(Math.random() * 500).toString();
+	span.style.color = "purple";
+	return span;
+};
+
+const getOdometerHtml = (status: HTMLElement) => {
+	const htmlStatusOdometer = status.getElementsByClassName(ODOMETER_CELL)[0];
+	const number = htmlStatusOdometer.textContent || "0";
+	return { number, html: htmlStatusOdometer };
+};
+
+const getStatusDateHtml = (status: HTMLElement) => {
+	const htmlDateCell = status.getElementsByClassName(DATE_CELL)[0];
+	const parsedDate = new Date(htmlDateCell.textContent || "");
+	return { parsed: parsedDate, html: htmlDateCell };
+};
 
 const addReloadHtmlBtn = (containerHtmlQuery = ".d-flex.w-90") => {
 	console.log("adding reload btn");
@@ -36,44 +56,19 @@ const addReloadHtmlBtn = (containerHtmlQuery = ".d-flex.w-90") => {
 	htmlReloadBtn.addEventListener("click", fetchAndProcessStatus);
 	const container = $(containerHtmlQuery);
 
-	if (!container) return console.log("container doest exits");
+	if (!container) return console.log("container does not exist");
+
 	container.appendChild(htmlReloadBtn);
 };
 
-const getOdometerHtml = (status: HTMLElement) => {
-	const htmlStatusOdometer = status.getElementsByClassName(ODOMETER_CELL)[0];
-	const number = htmlStatusOdometer.textContent || "0";
-
-	const odometer = { number, html: htmlStatusOdometer };
-	return odometer;
-};
-
-const getStatusDateHtml = (status: HTMLElement) => {
-	const htmlDateCell = status.getElementsByClassName(DATE_CELL)[0];
-
-	const parsedDate = new Date(htmlDateCell.textContent || "");
-	const date = { parsed: parsedDate, html: htmlDateCell };
-	return date;
-};
-
-function createOdometerMilesPerHourSpan(odometer: number): HTMLSpanElement {
-	const span = document.createElement("span");
-	span.textContent = odometer.toString();
-	span.id = Math.floor(Math.random() * 500).toString();
-	span.style.color = "purple";
-
-	return span;
-}
-
 const fetchAndProcessStatus = async () => {
 	console.log("3. processing status");
-	database.status = []; // TODO: same cache data instead of clearing the database
-	const allStatusDatabase = database.status;
+	database.status = [];
+	const allStatusDatabase = database.status; // TODO: add data saving with cache
 
 	try {
 		const htmlAllStatus = $$(ALL_STATUS);
 
-		// save html table status on a list "statusDatabase"
 		for (let i = 0; i < htmlAllStatus.length; i++) {
 			const htmlStatus = htmlAllStatus[i];
 			const id = htmlStatus.id;
@@ -90,7 +85,6 @@ const fetchAndProcessStatus = async () => {
 			allStatusDatabase.push(status);
 		}
 
-		// modify the html body
 		for (let i = 0; i < allStatusDatabase.length; i++) {
 			const statusElement = allStatusDatabase[i];
 			const currentStatus = document.getElementById(statusElement.id);
@@ -106,22 +100,23 @@ const fetchAndProcessStatus = async () => {
 					const beforeElement = allStatusDatabase[i - 1];
 					const milesPerHour = statusElement.odometer - beforeElement.odometer;
 
-					if (isNaN(milesPerHour)) continue;
-					// modify html
-					const spanMilesPerHour = createOdometerMilesPerHourSpan(milesPerHour);
-					htmlOdometerCell.appendChild(spanMilesPerHour);
+					if (!isNaN(milesPerHour)) {
+						const spanMilesPerHour =
+							createOdometerMilesPerHourSpan(milesPerHour);
+						htmlOdometerCell.appendChild(spanMilesPerHour);
+					}
 				}
 			}
 		}
 	} catch (error) {
-		alert("OMG Something went wring");
+		alert("OMG Something went wrong");
 		console.error("Error fetching data:", error);
 	}
 };
 
 const runApp = () => {
 	fetchAndProcessStatus();
-	console.log("4. status proceed");
+	console.log("4. status processed");
 	setTimeout(() => console.clear(), 3000);
 	console.log("console cleared");
 };
@@ -130,29 +125,24 @@ const startObserver = () => {
 	console.log("2. observing");
 	const bodyObserver = new MutationObserver(mutations => {
 		mutations.forEach(mutation => {
-			// every time the log is changed (next day)
 			if (mutation.type === "childList" && mutation.target === document.body) {
 				console.log("✨body changed");
-				// if reload btn doesn't exits -> add it
 				if (!$(RELOAD_BTN)) addReloadHtmlBtn();
-
 				runApp();
 			}
 		});
 	});
 
 	const bodyObserverConfig = {
-		childList: true, // Watch for changes to the child nodes (i.e., elements added/removed)
-		subtree: true, // Watch all nested elements as well
+		childList: true,
+		subtree: true,
 	};
 
-	// Start observing the body for changes
 	bodyObserver.observe(document.body, bodyObserverConfig);
 };
 
 window.onload = () => {
 	console.log("1. extension is running");
-	// first page load
 	startObserver();
 	addReloadHtmlBtn();
 	fetchAndProcessStatus();
