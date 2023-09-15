@@ -16,6 +16,7 @@ const HTML_ELEMENTS = {
     DATE_CELL: "mat-cell cdk-cell log-table-cell cdk-column-time mat-column-time",
     RELOAD_BTN: "#reloadBTnMilesHour",
 };
+const database = { status: [] };
 const { ALL_STATUS, ODOMETER_CELL, DATE_CELL, RELOAD_BTN } = HTML_ELEMENTS;
 const $ = (query) => document.querySelector(query);
 const $$ = (query) => document.querySelectorAll(query);
@@ -44,18 +45,14 @@ const addReloadHtmlBtn = (containerHtmlQuery = ".d-flex.w-90") => {
     htmlReloadBtn.textContent = "Reload miles per hour";
     htmlReloadBtn.addEventListener("click", fetchAndProcessStatus);
     const container = $(containerHtmlQuery);
-    if (!container) {
-        console.log("container does not exist");
-    }
-    else {
-        container.appendChild(htmlReloadBtn);
-    }
+    if (!container)
+        return console.log("container does not exist");
+    container.appendChild(htmlReloadBtn);
 };
-const database = { status: [] };
 const fetchAndProcessStatus = () => __awaiter(void 0, void 0, void 0, function* () {
     console.log("3. processing status");
     database.status = [];
-    const allStatusDatabase = database.status;
+    const allStatusDatabase = database.status; // TODO: add data saving with cache
     try {
         const htmlAllStatus = $$(ALL_STATUS);
         for (let i = 0; i < htmlAllStatus.length; i++) {
@@ -103,10 +100,9 @@ const runApp = () => {
 };
 const startObserver = () => {
     console.log("2. observing");
-    const bodyObserver = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === "childList" &&
-                mutation.target === document.body) {
+    const bodyObserver = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            if (mutation.type === "childList" && mutation.target === document.body) {
                 console.log("✨body changed");
                 if (!$(RELOAD_BTN))
                     addReloadHtmlBtn();
